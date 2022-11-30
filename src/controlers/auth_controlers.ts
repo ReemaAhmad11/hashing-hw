@@ -2,6 +2,8 @@ import { prisma } from "../config/db";
 import { User } from "@prisma/client";
 import { Response, Request, } from "express";
 import * as argon2 from 'argon2';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
+import * as jwt from 'jsonwebtoken';
 
 export const loginHandller = async (req: Request, res: Response) => {
   try {
@@ -23,9 +25,10 @@ export const loginHandller = async (req: Request, res: Response) => {
         message: 'Wrong username or password ',
       });
     }
-
+    const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET as string)
     return res.status(200).json({
       message: 'Welcome Back ',
+      token,
     });
   } catch (error) {
     console.log(error);
@@ -55,3 +58,27 @@ export const registerHandller = async (req: Request, res: Response) => {
 
   }
 }
+
+export const getAllusersHandler = async (req: Request, res: Response) => {
+  try {
+    const users = await prisma.user.findMany();
+    return res.status(200).json(users);
+  }
+  catch (error) {
+    console.log(error);
+    const prismaError = error as PrismaClientKnownRequestError;
+    return res.status(400).json({
+      message: prismaError.message,
+    })
+  }
+}
+
+export const adminHandler = async (req: Request, res: Response) => {
+    return res.status(200).json({missage:'hey admin with id' +res.locals.user.id});
+}
+
+export const usersHandler = async (req: Request, res: Response) => {
+  return res.status(200).json({missage:'hey user id'+res.locals.user.id});
+
+}
+
