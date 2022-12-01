@@ -30,9 +30,9 @@ const protect=(req:Request, res:Response,next:NextFunction)=>{
 }
 
 const authrize=
-(role: string)=>(req:Request, res:Response,next:NextFunction)=>{
+(...role:string[])=>(req:Request, res:Response,next:NextFunction)=>{
  const user=res.locals.user as IUser;
-  if(user.role != role){
+  if(!role.includes(user.role)){
     return res.status(403).json({
       message:'You are not authorized to enter this route'
   })
